@@ -27,17 +27,19 @@ class RedditGraphExtractor:
             
             if current_author == "AutoModerator" or parent_author == "AutoModerator":
                 return
+
+            post = comment.body
             
             self.graph.add_edge(
                 current_author, parent_author,
                 subreddit=subreddit_name,
-                currentComment=comment.body,
+                currentComment=post,
                 parentComment=parent_body,
                 score=comment.score
             )
             
             for child in comment.replies:
-                self._dfs(comment, child, subreddit_name, comment.body)
+                self._dfs(comment, child, subreddit_name, post)
         except Exception as e:
             print(f"Error in DFS: {e}")
             sleep(60)
@@ -60,8 +62,11 @@ class RedditGraphExtractor:
                 print(f"Processing post {tracked_posts}/{max_posts} from r/{subreddit_name} with {num_comments} comments")
                 
                 submission.comments.replace_more(limit=None)
+
+                post = submission.title
+                
                 for comment in submission.comments:
-                    self._dfs(submission, comment, subreddit_name, submission.title)
+                    self._dfs(submission, comment, subreddit_name, post)
             except Exception as e:
                 print(f"Error processing submission: {e}")
                 sleep(60)
