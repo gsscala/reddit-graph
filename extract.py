@@ -3,7 +3,9 @@ import networkx as nx
 from time import sleep
 import argparse
 from dotenv import load_dotenv
-from os import getenv
+import os
+from datetime import datetime
+import pytz
 
 class RedditGraphExtractor:
     def __init__(self, client_id, client_secret, user_agent):
@@ -35,11 +37,14 @@ class RedditGraphExtractor:
                 subreddit=subreddit_name,
                 currentComment=post,
                 parentComment=parent_body,
-                score=comment.score
+                score=comment.score,
+                submissionDate = str(datetime.fromtimestamp(comment.created_utc, tz=pytz.utc).strftime('%Y-%m-%d %H:%M:%S %Z%z')),
+                collectionDate = str(datetime.now(pytz.utc).strftime('%Y-%m-%d %H:%M:%S %Z%z'))
             )
             
             for child in comment.replies:
                 self._dfs(comment, child, subreddit_name, post)
+
         except Exception as e:
             print(f"Error in DFS: {e}")
             sleep(60)
@@ -67,12 +72,13 @@ class RedditGraphExtractor:
                 
                 for comment in submission.comments:
                     self._dfs(submission, comment, subreddit_name, post)
+                    
             except Exception as e:
                 print(f"Error processing submission: {e}")
                 sleep(60)
         
-    def save_graph(self, filename):
-        nx.write_gexf(self.graph, filename)
+    def save_graph(self, path):
+        nx.write_gexf(self.graph, path)
         print(f"Graph saved with {len(self.graph.nodes())} nodes and {len(self.graph.edges())} edges.")
 
 if __name__ == "__main__":
@@ -85,14 +91,23 @@ if __name__ == "__main__":
 
     load_dotenv()
 
-    extractor = RedditGraphExtractor(
-        client_id=getenv('REDDIT_CLIENT_ID'), client_secret=getenv('REDDIT_CLIENT_SECRET'), user_agent=getenv('USER_AGENT')
-    )
-    
+    folder_name = "reddit-graph"
+    folder_path = f"./{folder_name}/"
+
+    counter = 1
+    while os.path.exists(folder_path):
+        folder_path = f"./{folder_name}({counter})/"
+        counter += 1
+
+    os.makedirs(folder_path, exist_ok=False)
+
     with open('subreddits.txt', 'r') as file:
         for subreddit in file:
+            extractor = RedditGraphExtractor(
+                client_id=os.getenv('REDDIT_CLIENT_ID'), client_secret=os.getenv('REDDIT_CLIENT_SECRET'), user_agent=os.getenv('USER_AGENT')
+            )
             extractor.extract_interactions(
                 subreddit.strip(), post_limit=args.post_limit, min_comments=args.min_comments, max_comments=args.max_comments, max_posts=args.max_posts
             )
+            extractor.save_graph(os.path.join(folder_path, f"{subreddit.strip()}.gexf"))
     
-    extractor.save_graph("reddit_graph.gexf")
