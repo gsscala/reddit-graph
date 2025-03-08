@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime
 import pytz
+from merger import GraphMerger
 
 class RedditGraphExtractor:
     def __init__(self, client_id, client_secret, user_agent):
@@ -20,27 +21,22 @@ class RedditGraphExtractor:
         try:
             current_author = comment.author
             parent_author = parent.author
-            
-            if not current_author or not parent_author:
-                return
-            
-            current_author = current_author.name
-            parent_author = parent_author.name
-            
-            if current_author == "AutoModerator" or parent_author == "AutoModerator":
-                return
-
             post = comment.body
             
-            self.graph.add_edge(
-                current_author, parent_author,
-                subreddit=subreddit_name,
-                currentComment=post,
-                parentComment=parent_body,
-                score=comment.score,
-                submissionDate = str(datetime.fromtimestamp(comment.created_utc, tz=pytz.utc).strftime('%Y-%m-%d %H:%M:%S %Z%z')),
-                collectionDate = str(datetime.now(pytz.utc).strftime('%Y-%m-%d %H:%M:%S %Z%z'))
-            )
+            if current_author and parent_author:
+                current_author = current_author.name
+                parent_author = parent_author.name
+
+                if current_author != "AutoModerator" and parent_author != "AutoModerator":
+                    self.graph.add_edge(
+                        current_author, parent_author,
+                        subreddit=subreddit_name,
+                        currentComment=post,
+                        parentComment=parent_body,
+                        score=comment.score,
+                        submissionDate = str(datetime.fromtimestamp(comment.created_utc, tz=pytz.utc).strftime('%Y-%m-%d %H:%M:%S %Z%z')),
+                        collectionDate = str(datetime.now(pytz.utc).strftime('%Y-%m-%d %H:%M:%S %Z%z'))
+                    )
             
             for child in comment.replies:
                 self._dfs(comment, child, subreddit_name, post)
@@ -59,7 +55,7 @@ class RedditGraphExtractor:
             try:
                 num_comments = submission.num_comments
                 
-                if not submission.author or not (max_comments >= num_comments >= min_comments):
+                if not (max_comments >= num_comments >= min_comments):
                     print(f"Skipped submission from {submission.author} with {num_comments} comments")
                     continue
                 
@@ -79,13 +75,13 @@ class RedditGraphExtractor:
         
     def save_graph(self, path):
         nx.write_gexf(self.graph, path)
-        print(f"Graph saved with {len(self.graph.nodes())} nodes and {len(self.graph.edges())} edges.")
+        print(f"Graph saved with {len(self.graph.nodes())} nodes and {len(self.graph.edges())} edges in {path}.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract Reddit interactions and build a graph.")
-    parser.add_argument("--post_limit", type=int, default=2000, help="Maximum number of posts to process per subreddit.")
+    parser.add_argument("--post_limit", type=int, default=20000, help="Maximum number of posts to process per subreddit.")
     parser.add_argument("--min_comments", type=int, default=300, help="Minimum number of comments required for a post to be considered.")
-    parser.add_argument("--max_comments", type=int, default=500, help="Maximum number of comments allowed for a post to be considered.")
+    parser.add_argument("--max_comments", type=int, default=float('inf'), help="Maximum number of comments allowed for a post to be considered.")
     parser.add_argument("--max_posts", type=int, default=10, help="Maximum number of posts to track per subreddit.")
     args = parser.parse_args()
 
@@ -111,3 +107,7 @@ if __name__ == "__main__":
             )
             extractor.save_graph(os.path.join(folder_path, f"{subreddit.strip()}.gexf"))
     
+    if (input("All graphs have been generated successfully.\nCreate a separate file with all graphs merged? [y/n] ") == "y"):
+        MergedGraph = GraphMerger(folder_path)
+        MergedGraph.merge()
+        MergedGraph.save()
