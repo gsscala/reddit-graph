@@ -20,7 +20,7 @@ class Separator:
 
         counter = 1
         while os.path.exists(path):
-            path = self.sourceFolder + f"messages({counter}).json"
+            path = sourceFolder + f"messages({counter}).json"
             counter += 1
 
         assert(not os.path.exists(path))
