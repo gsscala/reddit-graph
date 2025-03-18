@@ -25,7 +25,7 @@ class GraphMerger:
             counter += 1
 
         nx.write_gexf(self.merged_graph, folder_path)
-        print(f"Succesfully merged all graphs into one with {self.merged_graph.number_of_nodes()} nodes and {self.merged_graph.number_of_edges()} edges.\nWritten file successfully to {folder_path}.")
+        print(f"Succesfully merged all graphs into one with {self.merged_graph.number_of_nodes()} nodes and {self.merged_graph.number_of_edges()} edges.\Wrote file successfully to {folder_path}.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Merge multiple graphs into a single .gexf")

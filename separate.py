@@ -1,0 +1,31 @@
+import networkx as nx
+from collections import defaultdict
+import json
+import os
+
+class Separator:
+    def __init__(self, graph: nx.MultiDiGraph):
+        self.messages = defaultdict(lambda: defaultdict(list))
+        self.graph = graph
+
+    def separate(self):
+        for u, v, data in self.graph.edges(data=True):
+            self.messages[u][v].append({key: value for key, value in data.items() if key != 'id'})
+        return self.messages
+
+    def dump(self, sourceFolder):
+        if sourceFolder[-1] != "/":
+            sourceFolder += "/"
+        path = sourceFolder + 'messages.json'
+
+        counter = 1
+        while os.path.exists(path):
+            path = self.sourceFolder + f"messages({counter}).json"
+            counter += 1
+
+        assert(not os.path.exists(path))
+
+        with open(path, 'w') as json_file:
+            json.dump(self.messages, json_file, indent=4)
+        
+        print(f"Dumped file successfully to {path}")
