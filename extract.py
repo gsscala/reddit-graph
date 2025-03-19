@@ -57,7 +57,7 @@ class RedditGraphExtractor:
                 num_comments = submission.num_comments
                 
                 if not (max_comments >= num_comments >= min_comments):
-                    print(f"Skipped submission from {submission.author} with {num_comments} comments")
+                    # print(f"Skipped submission from {submission.author} with {num_comments} comments")
                     continue
                 
                 tracked_posts += 1
@@ -73,6 +73,7 @@ class RedditGraphExtractor:
             except Exception as e:
                 print(f"Error processing submission: {e}")
                 sleep(60)
+                continue
         
     def save_graph(self, path):
         nx.write_gexf(self.graph, path)
@@ -81,9 +82,9 @@ class RedditGraphExtractor:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract Reddit interactions and build a graph.")
     parser.add_argument("--post_limit", type=int, default=20000, help="Maximum number of posts to process per subreddit.")
-    parser.add_argument("--min_comments", type=int, default=300, help="Minimum number of comments required for a post to be considered.")
+    parser.add_argument("--min_comments", type=int, default=500, help="Minimum number of comments required for a post to be considered.")
     parser.add_argument("--max_comments", type=int, default=float('inf'), help="Maximum number of comments allowed for a post to be considered.")
-    parser.add_argument("--max_posts", type=int, default=10, help="Maximum number of posts to track per subreddit.")
+    parser.add_argument("--max_posts", type=int, default=30, help="Maximum number of posts to track per subreddit.")
     parser.add_argument('--merge_graphs', action='store_true', help='Create a separate file with all graphs merged.')
     parser.add_argument('--dump_messages', action='store_true', help='Create a JSON file of a python dictionary storing all edges between any two nodes')
 
