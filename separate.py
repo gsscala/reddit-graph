@@ -29,3 +29,12 @@ class Separator:
             json.dump(self.messages, json_file, indent=4)
         
         print(f"Dumped file successfully to {path}")
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--path", type=str, help="Input path to .gefx file")
+    parser = parser.parse_args()
+    messages = Separator(nx.read_gexf(parser.path))
+    messages.separate()
+    messages.dump(parser.path[:parser.path.rfind("/") + 1])
