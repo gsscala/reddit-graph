@@ -60,8 +60,7 @@ class RedditGraphExtractor:
                     # print(f"Skipped submission from {submission.author} with {num_comments} comments")
                     continue
                 
-                tracked_posts += 1
-                print(f"Processing post {tracked_posts}/{max_posts} from r/{subreddit_name} with {num_comments} comments")
+                print(f"Processing post {tracked_posts + 1}/{max_posts} from r/{subreddit_name} with {num_comments} comments")
                 
                 submission.comments.replace_more(limit=None)
 
@@ -69,6 +68,8 @@ class RedditGraphExtractor:
                 
                 for comment in submission.comments:
                     self._dfs(submission, comment, subreddit_name, post)
+                
+                tracked_posts += 1
                     
             except Exception as e:
                 print(f"Error processing submission: {e}")
