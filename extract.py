@@ -40,11 +40,17 @@ class RedditGraphExtractor:
                     )
             
             for child in comment.replies:
-                self._dfs(comment, child, subreddit_name, post)
-
+                try:
+                    self._dfs(comment, child, subreddit_name, post)
+                except Exception as e:
+                    print(f"Error in DFS nested comments: {e}")
+                    sleep(60)
+                    self._dfs(comment, child, subreddit_name, post)
+            
         except Exception as e:
             print(f"Error in DFS: {e}")
             sleep(60)
+            self._dfs(parent, comment, subreddit_name, parent_body)
     
     def extract_interactions(self, subreddit_name, post_limit, min_comments, max_comments, max_posts):
         subreddit = self.reddit.subreddit(subreddit_name)
@@ -67,14 +73,17 @@ class RedditGraphExtractor:
                 post = submission.title
                 
                 for comment in submission.comments:
-                    self._dfs(submission, comment, subreddit_name, post)
+                    try:
+                        self._dfs(submission, comment, subreddit_name, post)
+                    except Exception as e:
+                        print(f"Error processing top-level comment: {e}")
+                        sleep(60)
                 
                 tracked_posts += 1
                     
             except Exception as e:
                 print(f"Error processing submission: {e}")
                 sleep(60)
-                continue
         
     def save_graph(self, path):
         nx.write_gexf(self.graph, path)
@@ -82,7 +91,7 @@ class RedditGraphExtractor:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract Reddit interactions and build a graph.")
-    parser.add_argument("--post_limit", type=int, default=20000, help="Maximum number of posts to process per subreddit.")
+    parser.add_argument("--post_limit", type=int, default=100000, help="Maximum number of posts to process per subreddit.")
     parser.add_argument("--min_comments", type=int, default=500, help="Minimum number of comments required for a post to be considered.")
     parser.add_argument("--max_comments", type=int, default=float('inf'), help="Maximum number of comments allowed for a post to be considered.")
     parser.add_argument("--max_posts", type=int, default=30, help="Maximum number of posts to track per subreddit.")
