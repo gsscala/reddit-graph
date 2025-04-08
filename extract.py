@@ -18,12 +18,13 @@ class RedditGraphExtractor:
         )
         self.graph = nx.MultiDiGraph()
     
-    def _dfs(self, parent, comment, subreddit_name, parent_body):
+    def _dfs(self, parent, comment, subreddit_name, history):
         try:
             current_author = comment.author
             parent_author = parent.author
-            post = comment.body
             
+            history += " |~:~| " + comment.body
+
             if current_author and parent_author:
                 current_author = current_author.name
                 parent_author = parent_author.name
@@ -32,8 +33,7 @@ class RedditGraphExtractor:
                     self.graph.add_edge(
                         current_author, parent_author,
                         subreddit=subreddit_name,
-                        currentComment=post,
-                        parentComment=parent_body,
+                        comments=history,
                         score=comment.score,
                         submissionDate = str(datetime.fromtimestamp(comment.created_utc, tz=pytz.utc).strftime('%Y-%m-%d %H:%M:%S %Z%z')),
                         collectionDate = str(datetime.now(pytz.utc).strftime('%Y-%m-%d %H:%M:%S %Z%z'))
@@ -41,16 +41,16 @@ class RedditGraphExtractor:
             
             for child in comment.replies:
                 try:
-                    self._dfs(comment, child, subreddit_name, post)
+                    self._dfs(comment, child, subreddit_name, history)
                 except Exception as e:
                     print(f"Error in DFS nested comments: {e}")
                     sleep(60)
-                    self._dfs(comment, child, subreddit_name, post)
+                    self._dfs(comment, child, subreddit_name, history)
             
         except Exception as e:
             print(f"Error in DFS: {e}")
             sleep(60)
-            self._dfs(parent, comment, subreddit_name, parent_body)
+            self._dfs(parent, comment, subreddit_name, history)
     
     def extract_interactions(self, subreddit_name, post_limit, min_comments, max_comments, max_posts):
         subreddit = self.reddit.subreddit(subreddit_name)
