@@ -33,7 +33,7 @@ class Separator:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path", type=str, help="Input path to .gefx file")
+    parser.add_argument("--path", type=str, help="Input path to .gexf file")
     parser = parser.parse_args()
     messages = Separator(nx.read_gexf(parser.path))
     messages.separate()

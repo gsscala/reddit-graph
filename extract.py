@@ -128,6 +128,6 @@ if __name__ == "__main__":
         if args.merge_graphs:
             MergedGraph.save()
         if args.dump_messages:
-            messages = Separator(MergedGraph)
+            messages = Separator(MergedGraph.merged_graph)
             messages.separate()
             messages.dump(folder_path)
