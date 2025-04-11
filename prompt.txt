@@ -1,0 +1,63 @@
+You will be given two Reddit comments. where the second one is a reply to the first one. In addition, you will be fed their context, that is, the comments that preceed them in the hierarchy of comments. You must classify the sentiment of the second comment in relation to the first one, in this order, in exactly one of the following sentiments:
+
+admiration
+amusement
+anger
+annoyance
+approval
+caring
+confusion
+curiosity
+desire
+disappointment
+disapproval
+disgust
+embarrassment
+excitement
+fear
+gratitude
+grief
+joy
+love
+nervousness
+optimism
+pride
+realization
+relief
+remorse
+sadness
+surprise
+neutral
+
+Below follow examples of each sentiment, note that these are only examples and you should not be hyperfixated on them
+
+admiration : I appreciate it, that's good to know. I hope I'll have to apply that knowledge one day
+amusement : that's adorable asf
+anger : Press fucken charges the moment they use your info.
+annoyance : Go troll elsewhere. This woman needs support, not crass questions.
+approval : Finally gamers are being recognised as a valid gender by the State.
+caring : Yup, not anymore. Keep your blood sugar up! It really helps and DRINK water...
+confusion : Oh whoops, I misread the original comment
+curiosity : Now I'm wondering on what I've been missing out. Again thank you for this.
+desire : Their ideas are intriguing to me and I wish to subscribe to them.
+disappointment : Dark and funny, but not really nice guy. He has yet to call the dead girls whores for declining to sleep with him. 
+disapproval : I can't stand her. Especially since her "tatooing my own face" video. 
+disgust : "Oh, how DARE you discuss the disgustingly unhealthy and dangerous lifestyle I pursue!" /s
+embarrassment : Awkwardly remembering all of those promises I made mid-panic attack...
+excitement : Great! Can't wait :)
+fear : Oh gosh that's no good! Perhaps the other options are better places to start
+gratitude : Right? Considering it’s such an important document, I should know the damned thing backwards and forwards... thanks again for the help!
+grief : He's eating cheese and watching football in the sky now. Rest in peace!
+joy : The possibilities are fascinating. In other times, I'd be enjoying watching the lawyers argue...!
+love : This is kinda cute
+nervousness : Honestly at this point I don't think there's anything that will make me feel better. Maybe down the road, but right now nothing is helping. 
+optimism : Sending love and strength vibes <3
+pride : At least you went out! For what it's worth, I definitely would have gone out with you if you were near me.
+realization : I thought I was the only one
+relief : I’m glad I had a few margaritas before I read this
+remorse : I regret having done that
+sadness : It bothered me so much that he would have done that given the opportunity
+surprise : I'm actually astonished that it worked tbf
+neutral : I don't know honestly
+
+Below will follow a string of comments whose split is |~:~|. You should classify the sentiment of the last one of them in relation to the second to the last one, taking into account the preceding context in the string. Remember to classify the relation in exactly one sentiment and reply with a single word (the sentiment). You may not refuse to classify it.
