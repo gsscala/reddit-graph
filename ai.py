@@ -1,5 +1,6 @@
 import ollama
 import networkx as nx
+import re
 
 class OllamaSentimentAnalysisGraph:
     def __init__(self, model, graph, prompt, host):
@@ -11,15 +12,17 @@ class OllamaSentimentAnalysisGraph:
 
     def process_graph(self):
         for u, v, data in self.original_graph.edges(data=True):
-            response = self.client.generate(self.model, self.prompt + "\n" + data["comments"])
-            
+            response = self.client.generate(self.model, self.prompt + "\n" + data["comments"]).response
+            score = re.findall(r"-?\d+\.?\d*", response)
+            score = 0 if not len(score) else float(score[-1])
             self.weighted_graph.add_edge(u, v,
                 **{key: value for key, value in data.items() if key not in {"id", "comments"}},
-                sentiment=response
+                sentiment=score
             )
+            print(f"Added edge from {u} to {v} with weight {score}")
     
     def save_graph(self):
-        nx.write_gexf(self.weighted_graph)
+        nx.write_gexf(self.weighted_graph, "./final_graph.gexf")
 
 
 if __name__ == "__main__":
