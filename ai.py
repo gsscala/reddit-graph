@@ -16,7 +16,7 @@ class OllamaSentimentAnalysisGraph:
 
     def worker(self, edges, host, position):
         client = ollama.Client(host)
-        for ind, (u, v, data) in enumerate(tqdm(edges, desc=f"[{host}]", position=position)):
+        for ind, (u, v, data) in enumerate(tqdm(edges, desc=f"[{host} || {self.name}]", position=position)):
             try:
                 response = client.generate(self.model, self.prompt + "\n" + data["comments"]).response
                 score = re.findall(r"-?\d+\.?\d*", response)
@@ -29,13 +29,11 @@ class OllamaSentimentAnalysisGraph:
             self.pool.append((u, v, data))
 
     def process_graph(self):
-        print(f"\n🚀 Processing graph {self.name}.gexf")
         edges = list(self.original_graph.edges(data=True))
         n = len(self.hosts)
-        chunks = [edges[i::n] for i in range(n)]
 
         processes = [
-            Process(target=self.worker, args=(chunks[i], self.hosts[i], i))
+            Process(target=self.worker, args=(edges[i::n], self.hosts[i], i))
             for i in range(n)
         ]
         
@@ -49,7 +47,7 @@ class OllamaSentimentAnalysisGraph:
 
     def save_graph(self):
         nx.write_gexf(self.weighted_graph, f"./{self.name}_weighted.gexf")
-        print(f"💾 Saved graph {self.name}_weighted.gexf "
+        print(f"Successfully saved graph {self.name}_weighted.gexf "
               f"with {self.weighted_graph.number_of_nodes()} nodes and "
               f"{self.weighted_graph.number_of_edges()} edges")
 
