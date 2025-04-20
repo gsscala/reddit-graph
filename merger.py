@@ -1,6 +1,7 @@
 import networkx as nx
 import os
 import argparse
+from tqdm import tqdm
 
 class GraphMerger:
     def __init__(self, sourceFolder):
@@ -12,8 +13,7 @@ class GraphMerger:
         for filename in os.listdir(self.sourceFolder):
             file_path = os.path.join(self.sourceFolder, filename)
             if os.path.isfile(file_path) and file_path.endswith(".gexf"):
-                print(f"Adding graph {filename}")
-                for u, v, data in nx.read_gexf(file_path).edges(data=True):
+                for u, v, data in tqdm(nx.read_gexf(file_path).edges(data=True), desc=filename):
                     self.merged_graph.add_edge(u, v,
                     **{key: value for key, value in data.items() if key != 'id'}
                     )
@@ -25,7 +25,6 @@ class GraphMerger:
             counter += 1
 
         nx.write_gexf(self.merged_graph, folder_path)
-        print(f"Succesfully merged all graphs into one with {self.merged_graph.number_of_nodes()} nodes and {self.merged_graph.number_of_edges()} edges.\Wrote file successfully to {folder_path}.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Merge multiple graphs into a single .gexf")
