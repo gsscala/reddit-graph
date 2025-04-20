@@ -2,6 +2,7 @@ import networkx as nx
 from collections import defaultdict
 import json
 import os
+from tqdm import tqdm
 
 class Separator:
     def __init__(self, graph: nx.MultiDiGraph):
@@ -9,7 +10,7 @@ class Separator:
         self.graph = graph
 
     def separate(self):
-        for u, v, data in self.graph.edges(data=True):
+        for u, v, data in tqdm(self.graph.edges(data=True), desc="Processing edges"):
             self.messages[u][v].append({key: value for key, value in data.items() if key != 'id'})
         return self.messages
 
@@ -28,8 +29,6 @@ class Separator:
         with open(path, 'w') as json_file:
             json.dump(self.messages, json_file, indent=4)
         
-        print(f"Dumped file successfully to {path}")
-
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
