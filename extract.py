@@ -41,12 +41,10 @@ class RedditGraphExtractor:
                 try:
                     self._dfs(comment, child, subreddit_name, history)
                 except Exception as e:
-                    print(f"Error in DFS nested comments: {e}")
                     sleep(60)
                     self._dfs(comment, child, subreddit_name, history)
             
         except Exception as e:
-            print(f"Error in DFS: {e}")
             sleep(60)
             self._dfs(parent, comment, subreddit_name, history)
     
