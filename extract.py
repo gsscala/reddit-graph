@@ -5,6 +5,7 @@ from datetime import datetime
 import pytz
 from merger import GraphMerger
 from separate import Separator
+from tqdm import tqdm
 
 class RedditGraphExtractor:
     def __init__(self, client_id, client_secret, user_agent):
@@ -52,7 +53,8 @@ class RedditGraphExtractor:
     def extract_interactions(self, subreddit_name, post_limit, min_comments, max_comments, max_posts):
         subreddit = self.reddit.subreddit(subreddit_name)
         tracked_posts = 0
-        
+        pbar = tqdm(total=max_posts, desc=f"r/{subreddit_name}")
+
         for submission in subreddit.new(limit=post_limit):
             if tracked_posts >= max_posts:
                 break
@@ -60,31 +62,27 @@ class RedditGraphExtractor:
                 num_comments = submission.num_comments
                 
                 if not (max_comments >= num_comments >= min_comments):
-                    # print(f"Skipped submission from {submission.author} with {num_comments} comments")
                     continue
                 
-                print(f"Processing post {tracked_posts + 1}/{max_posts} from r/{subreddit_name} with {num_comments} comments")
-                
                 submission.comments.replace_more(limit=None)
-
-                post = submission.title
                 
-                for comment in submission.comments:
-                    try:
-                        self._dfs(submission, comment, subreddit_name, post)
-                    except Exception as e:
-                        print(f"Error processing top-level comment: {e}")
-                        sleep(60)
+                for top_level_comment in submission.comments:
+                    post = top_level_comment.body
+                    for second_level_comment in top_level_comment.replies:
+                        try:
+                            self._dfs(top_level_comment, second_level_comment, subreddit_name, post)
+                        except Exception as e:
+                            sleep(60)
+                            self._dfs(top_level_comment, second_level_comment, subreddit_name, post)
                 
                 tracked_posts += 1
+                pbar.update(1)
                     
             except Exception as e:
-                print(f"Error processing submission: {e}")
                 sleep(60)
         
     def save_graph(self, path):
         nx.write_gexf(self.graph, path)
-        print(f"Graph saved with {len(self.graph.nodes())} nodes and {len(self.graph.edges())} edges in {path}.")
 
 if __name__ == "__main__":
     import argparse

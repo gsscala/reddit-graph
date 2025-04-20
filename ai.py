@@ -16,14 +16,13 @@ class OllamaSentimentAnalysisGraph:
 
     def worker(self, edges, host, position):
         client = ollama.Client(host)
-        for ind, (u, v, data) in enumerate(tqdm(edges, desc=f"[{host} || {self.name}]", position=position)):
+        for u, v, data in tqdm(edges, desc=f"[{host} || {self.name}]", position=position):
             try:
                 response = client.generate(self.model, self.prompt + "\n" + data["comments"]).response
                 score = re.findall(r"-?\d+\.?\d*", response)
                 sentiment = float(score[-1])
                 assert(-1 <= sentiment <= 1)
             except Exception as e:
-                print(f"[{host}] Error on edge {u}->{v}: {e}")
                 sentiment = 0.0
             data["sentiment"] = sentiment
             self.pool.append((u, v, data))
@@ -47,9 +46,6 @@ class OllamaSentimentAnalysisGraph:
 
     def save_graph(self):
         nx.write_gexf(self.weighted_graph, f"./{self.name}_weighted.gexf")
-        print(f"Successfully saved graph {self.name}_weighted.gexf "
-              f"with {self.weighted_graph.number_of_nodes()} nodes and "
-              f"{self.weighted_graph.number_of_edges()} edges")
 
 if __name__ == "__main__":
     import argparse
@@ -68,16 +64,28 @@ if __name__ == "__main__":
     if not os.path.exists(args.graph_path):
         raise ValueError(f"Path does not exist: {args.graph_path}")
 
+    import gc
+
+    def numEdges(filepath):
+        with open(filepath, "rb") as graph:
+            g = nx.read_gexf(graph)
+            num_edges = g.number_of_edges()
+            rtrn = (num_edges, filepath)
+            del g
+            del num_edges
+            gc.collect()
+            return rtrn
+
     filepaths = []
     if os.path.isdir(args.graph_path):
         for filename in os.listdir(args.graph_path):
             filepath = os.path.join(args.graph_path, filename)
             if os.path.isfile(filepath) and filename.endswith('.gexf'):
-                filepaths.append(filepath)
+                filepaths.append((numEdges(filepath), filepath))
     else:
-        filepaths.append(args.graph_path)
+        filepaths.append((numEdges(args.graph_path), args.graph_path))
 
-    for filepath in filepaths:
+    for edge_count, filepath in sorted(filepaths):
         filename = os.path.basename(filepath)
         graph = nx.read_gexf(filepath)
         ollama_graph = OllamaSentimentAnalysisGraph(
