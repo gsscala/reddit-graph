@@ -71,7 +71,7 @@ class RedditGraphExtractor:
                             self._dfs(top_level_comment, second_level_comment, subreddit_name, title + " |~:~| " + post)
                         except Exception as e:
                             sleep(60)
-                            self._dfs(top_level_comment, second_level_comment, subreddit_name, post)
+                            self._dfs(top_level_comment, second_level_comment, subreddit_name, title + " |~:~| " + post)
                 
                 tracked_posts += 1
                 pbar.update(1)
