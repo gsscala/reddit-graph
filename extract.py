@@ -65,13 +65,16 @@ class RedditGraphExtractor:
                 submission.comments.replace_more(limit=None)
                 title = submission.title
                 for top_level_comment in submission.comments:
-                    post = top_level_comment.body
-                    for second_level_comment in top_level_comment.replies:
-                        try:
-                            self._dfs(top_level_comment, second_level_comment, subreddit_name, title + " |~:~| " + post)
-                        except Exception as e:
-                            sleep(60)
-                            self._dfs(top_level_comment, second_level_comment, subreddit_name, title + " |~:~| " + post)
+                    try:
+                        post = top_level_comment.body
+                        for second_level_comment in top_level_comment.replies:
+                            try:
+                                self._dfs(top_level_comment, second_level_comment, subreddit_name, title + " |~:~| " + post)
+                            except Exception as e:
+                                sleep(60)
+                                self._dfs(top_level_comment, second_level_comment, subreddit_name, title + " |~:~| " + post)
+                    except Exception as e:
+                        sleep(60)
                 
                 tracked_posts += 1
                 pbar.update(1)
