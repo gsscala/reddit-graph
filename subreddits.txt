@@ -1,0 +1,10 @@
+politics
+neutralpolitics
+canadapolitics
+ukpolitics
+australianpolitics
+conservative
+politicalhumor
+politicaldiscussion
+neoliberal
+worldnews
