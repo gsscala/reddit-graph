@@ -14,17 +14,24 @@ class Processor:
     def evaluate(self):
         client = ollama.Client(self.host)
         performance = []
+        log = []
         for sentence in tqdm(self.data, desc=f"[{self.host} : {self.model}]"):
             start_time = time.perf_counter()
+            log.append([self.prompt + "\n" + sentence["text"], "", 2, sentence["label"], 0])
             try:
                 response = client.generate(self.model, self.prompt + "\n" + sentence["text"]).response
+                log[-1][1] = response
                 score = re.findall(r"-?\d+\.?\d*", response)
-                sentiment = float(score[-1])
+                sentiment = int(score[-1])
             except:
-                sentiment = 3
-            performance.append((abs(sentiment - sentence["label"]), time.perf_counter() - start_time))
+                sentiment = 2
+            finish_time = time.perf_counter()
+            elapsed_time = finish_time - start_time
+            log[-1][2] = sentiment
+            log[-1][4] = elapsed_time
+            performance.append((abs(sentiment - sentence["label"]), elapsed_time))
         
-        return performance
+        return performance, log
 
 if __name__ == "__main__":
     import json
@@ -36,16 +43,14 @@ if __name__ == "__main__":
     args = ArgumentParser.parse_args()
 
     with open(args.data_path, 'r', encoding='utf-8') as file:
-        data = [json.loads(line) for line in file]
+        data = json.load(file)
     
     with open(args.prompt_path, "r") as file:
         prompt = file.read()
 
-    comparison = {}
-
     for model in args.model:
-        process = Processor(data[:10], model, args.host, prompt)
-        current = process.evaluate()
+        process = Processor(data, model, args.host, prompt)
+        current, log = process.evaluate()
         cumulative_error = 0
         total_Time = 0
         assertiveness = 0
@@ -53,7 +58,7 @@ if __name__ == "__main__":
             cumulative_error += score
             total_Time += Time
             assertiveness += (score == 0)
-        comparison[model] = [(f"assertiveness {assertiveness}", f"cumulative_error {cumulative_error}", f"total_Time {total_Time}"), current]
-    
-    with open("model_comparison.json", "w") as f:
-        json.dump(comparison, f)
+        with open(f"{model}_performance.json") as f:
+            json.dump([(f"assertiveness {assertiveness}", f"cumulative_error {cumulative_error}", f"total_Time {total_Time}"), current], f)
+        with open (f"{model}_log.json", "w") as f:
+            json.dump(log, f)
