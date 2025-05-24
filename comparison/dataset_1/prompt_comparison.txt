@@ -1,0 +1,1 @@
+Given the text below, you must classify how negative or positive is the sentiment it expresses. Your ouput must only be one of the following integers: 0, 1, 2, 3, 4. 0 represents very negative, 1 negative, 2 neutral, 3 positive, 4 very positive.
