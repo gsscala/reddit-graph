@@ -61,9 +61,6 @@ ax.tick_params(axis='both', which='major', labelsize=12)  # Increased font size
 ax.tick_params(axis='both', which='minor', labelsize=10)  # Added for minor ticks
 ax.grid(True, which='both', linestyle='--', linewidth=0.5)
 
-# Annotate points in main plot
-for freq, assertiv, label in zip(x, y, labels):
-    ax.annotate(label, (freq, assertiv), fontsize=12, rotation=45)
 
 sota_value = 0.6227
 ax.axhline(y=sota_value, color='blue', linestyle='--', linewidth=1.5, label='SOTA')
@@ -99,11 +96,21 @@ axins.grid(True, which='both', linestyle='--', linewidth=0.5)
 axins.tick_params(axis='both', which='major', labelsize=8)
 
 # Annotate points in zoomed section
-for freq, assertiv, label in zip(x, y, labels):
+for i in range(len(x)):
+    freq = x[i]
+    assertiv = y[i]
+    label = labels[i]
     if (zoom_x_min <= freq <= zoom_x_max) and (zoom_y_min <= assertiv <= zoom_y_max):
         axins.annotate(label, (freq, assertiv), fontsize=12,
                       xytext=(5, 5), textcoords='offset points', rotation=45,
                       bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=0.7))
+
+        labels[i] = ""
+    
+
+# Annotate points in main plot
+for freq, assertiv, label in zip(x, y, labels):
+    ax.annotate(label, (freq, assertiv), fontsize=12, rotation=45)
 
 # Add zoom rectangle
 rect = plt.Rectangle((zoom_x_min, zoom_y_min), 
