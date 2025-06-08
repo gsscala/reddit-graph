@@ -6,6 +6,8 @@ class betweeness:
         self.betweeness = {v: 0.0 for v in graph.nodes()}
 
     def calculate(self):
+        # Brandes' algorithm
+
         n = self.graph.number_of_nodes()
         for s in self.graph.nodes():
             dist = {v: -1 for v in self.graph.nodes()}
