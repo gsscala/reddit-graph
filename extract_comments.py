@@ -3,8 +3,8 @@ import networkx as nx
 from time import sleep
 from datetime import datetime
 import pytz
-from merger import GraphMerger
-from separate import Separator
+from merge_graphs import GraphMerger
+from make_adj_list import Separator
 from tqdm import tqdm
 
 class RedditGraphExtractor:
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract Reddit interactions and build a graph.")
     parser.add_argument("--post_limit", type=int, default=100000, help="Maximum number of posts to process per subreddit.")
     parser.add_argument("--min_comments", type=int, default=200, help="Minimum number of comments required for a post to be considered.")
-    parser.add_argument("--max_comments", type=int, default=1000, help="Maximum number of comments allowed for a post to be considered.")
+    parser.add_argument("--max_comments", type=int, default=2000, help="Maximum number of comments allowed for a post to be considered.")
     parser.add_argument("--max_posts", type=int, default=30, help="Maximum number of posts to track per subreddit.")
     parser.add_argument('--merge_graphs', action='store_true', help='Create a separate file with all graphs merged.')
     parser.add_argument('--dump_messages', action='store_true', help='Create a JSON file of a python dictionary storing all edges between any two nodes')
