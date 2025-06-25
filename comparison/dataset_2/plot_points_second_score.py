@@ -78,7 +78,7 @@ zoom_x_max = 500
 zoom_y_min = 0.75
 zoom_y_max = 0.86
 
-axins = inset_axes(ax, width="40%", height="40%", loc='center left',
+axins = inset_axes(ax, width="40%", height="40%", loc='lower left',
                    bbox_to_anchor=(0.05, 0.05, 1, 1),
                    bbox_transform=ax.transAxes)
 
@@ -117,7 +117,7 @@ mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
 
 # Annotate points in main plot
 for freq, assertiv, label in zip(x, y, labels):
-    ax.annotate(label, (freq, assertiv), fontsize=12)
+    ax.annotate(label, (freq, assertiv), fontsize=12, rotation=30)
 
 plt.tight_layout()
 plt.show()
