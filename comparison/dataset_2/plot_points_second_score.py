@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import json
 import numpy as np
-from matplotlib.ticker import LogLocator, LogFormatterSciNotation, ScalarFormatter
+from matplotlib.ticker import LogLocator, ScalarFormatter
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 from matplotlib.lines import Line2D
 
@@ -41,26 +41,25 @@ ax.set_yscale('log')
 # Labels and title
 ax.set_xlabel('frequency (1/min)', fontsize=14)
 ax.set_ylabel('score', fontsize=14)
-ax.set_title('LLM Comparison', fontsize=16)
 
-# --- X-axis: Log scale with scientific notation ---
-ax.xaxis.set_major_locator(LogLocator(base=10.0, numticks=15))
-ax.xaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
-ax.xaxis.set_major_formatter(LogFormatterSciNotation())
-ax.xaxis.set_minor_formatter(plt.NullFormatter())
+# --- X-axis: Log scale with all ticks labeled ---
+ax.xaxis.set_major_locator(LogLocator(base=10.0, subs='all', numticks=30))
+x_formatter = ScalarFormatter()
+x_formatter.set_scientific(False)
+ax.xaxis.set_major_formatter(x_formatter)
 
-# --- Y-axis: Log scale with standard formatting ---
-ax.yaxis.set_major_locator(LogLocator(base=10.0, numticks=15))
-ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
-ax.yaxis.set_major_formatter(ScalarFormatter())
-ax.yaxis.set_minor_formatter(ScalarFormatter())
-ax.yaxis.set_tick_params(which='minor', labelsize=8)
+# --- Y-axis: Log scale with all ticks labeled ---
+ax.yaxis.set_major_locator(LogLocator(base=10.0, subs='all', numticks=30))
+y_formatter = ScalarFormatter()
+y_formatter.set_scientific(False)
+ax.yaxis.set_major_formatter(y_formatter)
 
 # Improve visibility
-ax.tick_params(axis='both', which='major', labelsize=12)  # Increased font size
-ax.tick_params(axis='both', which='minor', labelsize=10)  # Added for minor ticks
+ax.tick_params(axis='both', which='major', labelsize=12)
 ax.grid(True, which='both', linestyle='--', linewidth=0.5)
 
+# Force matplotlib to show all ticks
+plt.minorticks_off()
 
 # Legend
 legend_elements = [
@@ -70,8 +69,9 @@ legend_elements = [
 
 ax.legend(handles=legend_elements, 
           loc='lower right', 
-          bbox_to_anchor=(0.98, 0.25),  # Moves it up slightly
+          bbox_to_anchor=(0.98, 0.25),
           fontsize=12)
+
 # --- Zoomed inset ---
 zoom_x_min = 200
 zoom_x_max = 500
@@ -87,10 +87,26 @@ for i in range(len(x)):
 
 axins.set_xlim(zoom_x_min, zoom_x_max)
 axins.set_ylim(zoom_y_min, zoom_y_max)
-axins.set_xscale('log')
-axins.set_yscale('log')
-axins.grid(True, which='both', linestyle='--', linewidth=0.5)
-axins.tick_params(axis='both', which='major', labelsize=8)
+
+# Switch inset to linear scales for better readability
+axins.set_xscale('linear')
+axins.set_yscale('linear')
+
+# Configure linear axes for inset
+axins.xaxis.set_major_locator(plt.MultipleLocator(100))
+axins.yaxis.set_major_locator(plt.MultipleLocator(0.02))
+
+# Use scalar formatters without scientific notation
+inset_x_formatter = ScalarFormatter()
+inset_x_formatter.set_scientific(False)
+axins.xaxis.set_major_formatter(inset_x_formatter)
+
+inset_y_formatter = ScalarFormatter()
+inset_y_formatter.set_scientific(False)
+axins.yaxis.set_major_formatter(inset_y_formatter)
+
+axins.grid(True, which='major', linestyle='--', linewidth=0.5)
+axins.tick_params(axis='both', which='major', labelsize=12)
 
 # Annotate points in zoomed section
 for i in range(len(x)):
@@ -100,10 +116,7 @@ for i in range(len(x)):
     if (zoom_x_min <= freq <= zoom_x_max) and (zoom_y_min <= assertiv <= zoom_y_max):
         axins.annotate(label, (freq, assertiv), fontsize=12,
                       xytext=(0, 0), textcoords='offset points')
-
         labels[i] = ""
-    
-
 
 # Add zoom rectangle
 rect = plt.Rectangle((zoom_x_min, zoom_y_min), 
@@ -117,7 +130,8 @@ mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
 
 # Annotate points in main plot
 for freq, assertiv, label in zip(x, y, labels):
-    ax.annotate(label, (freq, assertiv), fontsize=12, rotation=30)
+    if label:  # Only annotate if label not empty
+        ax.annotate(label, (freq, assertiv), fontsize=12, rotation=15)
 
 plt.tight_layout()
 plt.show()

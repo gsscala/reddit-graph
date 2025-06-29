@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import json
 import numpy as np
-from matplotlib.ticker import LogLocator, LogFormatterSciNotation, ScalarFormatter
+from matplotlib.ticker import LogLocator, ScalarFormatter
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 from matplotlib.lines import Line2D
 
@@ -30,6 +30,7 @@ for i in range(len(x)):
 
 # Create plot
 fig, ax = plt.subplots(figsize=(10, 8))
+ax.set_ylim(bottom=0.01, top=1)
 
 # Plot points
 for i in range(len(x)):
@@ -41,26 +42,21 @@ ax.set_yscale('log')
 # Labels and title
 ax.set_xlabel('frequency (1/min)', fontsize=14)
 ax.set_ylabel('assertiveness', fontsize=14)
-ax.set_title('LLM Comparison', fontsize=16)
 
-# --- X-axis: Log scale with scientific notation ---
-ax.xaxis.set_major_locator(LogLocator(base=10.0, numticks=15))
-ax.xaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
-ax.xaxis.set_major_formatter(LogFormatterSciNotation())
-ax.xaxis.set_minor_formatter(plt.NullFormatter())
+# --- Main Axes: Increase ticks ---
+ax.xaxis.set_major_locator(LogLocator(base=10.0, subs=None, numticks=20))
+ax.yaxis.set_major_locator(LogLocator(base=10.0, subs=None, numticks=20))
+ax.xaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10), numticks=100))
+ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10), numticks=100))
 
-# --- Y-axis: Log scale with standard formatting ---
-ax.yaxis.set_major_locator(LogLocator(base=10.0, numticks=15))
-ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
+ax.xaxis.set_major_formatter(ScalarFormatter())
 ax.yaxis.set_major_formatter(ScalarFormatter())
+ax.xaxis.set_minor_formatter(ScalarFormatter())
 ax.yaxis.set_minor_formatter(ScalarFormatter())
-ax.yaxis.set_tick_params(which='minor', labelsize=8)
 
-# Improve visibility
-ax.tick_params(axis='both', which='major', labelsize=12)  # Increased font size
-ax.tick_params(axis='both', which='minor', labelsize=10)  # Added for minor ticks
+ax.tick_params(axis='both', which='major', labelsize=12)
+ax.tick_params(axis='both', which='minor', labelsize=10)
 ax.grid(True, which='both', linestyle='--', linewidth=0.5)
-
 
 # Legend
 legend_elements = [
@@ -69,8 +65,9 @@ legend_elements = [
 ]
 ax.legend(handles=legend_elements, 
           loc='lower right', 
-          bbox_to_anchor=(0.98, 0.25),  # Moves it up slightly
+          bbox_to_anchor=(0.98, 0.25), 
           fontsize=12)
+
 # --- Zoomed inset ---
 zoom_x_min = 200
 zoom_x_max = 500
@@ -89,7 +86,28 @@ axins.set_ylim(zoom_y_min, zoom_y_max)
 axins.set_xscale('log')
 axins.set_yscale('log')
 axins.grid(True, which='both', linestyle='--', linewidth=0.5)
-axins.tick_params(axis='both', which='major', labelsize=8)
+
+# --- Inset Axes: Moderate tick increase and font size match ---
+
+# Moderate density of major ticks
+axins.xaxis.set_major_locator(LogLocator(base=10.0, subs=np.arange(1, 10, 1), numticks=15))
+axins.yaxis.set_major_locator(LogLocator(base=10.0, subs=np.arange(1, 10, 1), numticks=15))
+
+# Moderate density of minor ticks
+axins.xaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10, 2), numticks=50))
+axins.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10, 2), numticks=50))
+
+# Formatters
+axins.xaxis.set_major_formatter(ScalarFormatter())
+axins.yaxis.set_major_formatter(ScalarFormatter())
+axins.xaxis.set_minor_formatter(ScalarFormatter())
+axins.yaxis.set_minor_formatter(ScalarFormatter())
+
+# Font size to match main plot
+axins.tick_params(axis='both', which='major', labelsize=12)
+axins.tick_params(axis='both', which='minor', labelsize=10)
+
+
 
 # Annotate points in zoomed section
 for i in range(len(x)):
@@ -98,15 +116,13 @@ for i in range(len(x)):
     label = labels[i]
     if (zoom_x_min <= freq <= zoom_x_max) and (zoom_y_min <= assertiv <= zoom_y_max):
         axins.annotate(label, (freq, assertiv), fontsize=12,
-                      xytext=(5, 5), textcoords='offset points', rotation=45,
-                      bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=0.7))
-
-        labels[i] = ""
-    
+                       xytext=(0, 0), textcoords='offset points', rotation=30)
+        labels[i] = ""  # Remove from main plot annotation
 
 # Annotate points in main plot
 for freq, assertiv, label in zip(x, y, labels):
-    ax.annotate(label, (freq, assertiv), fontsize=12, rotation=45)
+    if label:  # Skip already annotated
+        ax.annotate(label, (freq, assertiv), fontsize=12, rotation=30)
 
 # Add zoom rectangle
 rect = plt.Rectangle((zoom_x_min, zoom_y_min), 
@@ -115,9 +131,8 @@ rect = plt.Rectangle((zoom_x_min, zoom_y_min),
                      fill=False, color="red", linestyle="--", linewidth=1)
 ax.add_patch(rect)
 
-# Connect top-left to bottom-right
+# Connect inset
 mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
 
 plt.tight_layout()
 plt.show()
-
