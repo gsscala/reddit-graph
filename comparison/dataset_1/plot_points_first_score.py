@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import json
 import numpy as np
-from matplotlib.ticker import LogLocator, ScalarFormatter
+from matplotlib.ticker import LogLocator, ScalarFormatter, MultipleLocator
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 from matplotlib.lines import Line2D
 
@@ -37,7 +37,7 @@ for i in range(len(x)):
     ax.plot(x[i], y[i], 'o', color=colors[i], markersize=6)
 
 ax.set_xscale('log')
-ax.set_yscale('log')
+ax.set_yscale('linear')  # Changed from 'log' to 'linear'
 
 # Labels and title
 ax.set_xlabel('frequency (1/min)', fontsize=14)
@@ -51,13 +51,12 @@ ax.xaxis.set_minor_formatter(ScalarFormatter())
 ax.tick_params(axis='x', which='major', labelsize=12)
 ax.tick_params(axis='x', which='minor', labelsize=12)
 
-# --- Y-axis (main plot) ---
-ax.yaxis.set_major_locator(LogLocator(base=10.0, numticks=20))
-ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
+# --- Y-axis (main plot) updated for linear scale ---
+ax.yaxis.set_major_locator(MultipleLocator(0.1))
+ax.yaxis.set_minor_locator(MultipleLocator(0.02))
 ax.yaxis.set_major_formatter(ScalarFormatter())
-ax.yaxis.set_minor_formatter(ScalarFormatter())
 ax.tick_params(axis='y', which='major', labelsize=12)
-ax.tick_params(axis='y', which='minor', labelsize=12)
+ax.tick_params(axis='y', which='minor', labelsize=10)
 
 ax.grid(True, which='both', linestyle='--', linewidth=0.5)
 
@@ -66,7 +65,7 @@ legend_elements = [
     Line2D([0], [0], marker='o', color='w', label='Not Dominated', markerfacecolor='green', markersize=6),
     Line2D([0], [0], marker='o', color='w', label='Dominated', markerfacecolor='red', markersize=6),
 ]
-ax.legend(handles=legend_elements, loc='lower right', bbox_to_anchor=(0.98, 0.25), fontsize=12)
+ax.legend(handles=legend_elements, loc='lower right', fontsize=12)
 
 # --- Zoomed inset ---
 zoom_x_min = 300
@@ -84,10 +83,8 @@ for i in range(len(x)):
 axins.set_xlim(zoom_x_min, zoom_x_max)
 axins.set_ylim(zoom_y_min, zoom_y_max)
 axins.set_xscale('log')
-
-# Use linear y-scale to get more tick labels in inset
 axins.set_yscale('linear')
-axins.set_yticks(np.linspace(zoom_y_min, zoom_y_max, 6))  # 6 evenly spaced ticks
+axins.set_yticks(np.linspace(zoom_y_min, zoom_y_max, 6))
 axins.yaxis.set_major_formatter(ScalarFormatter())
 axins.tick_params(axis='y', which='major', labelsize=12)
 

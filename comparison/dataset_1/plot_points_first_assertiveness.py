@@ -36,14 +36,14 @@ ax.set_ylim(bottom=0.01, top=1)
 for i in range(len(x)):
     ax.plot(x[i], y[i], 'o', color=colors[i], markersize=6)
 
-ax.set_xscale('log')
-ax.set_yscale('log')
+ax.set_xscale('log')  # Keep x-axis log
+# Removed y-axis log scale: ax.set_yscale('log')
 
 # Labels and title
 ax.set_xlabel('frequency (1/min)', fontsize=14)
 ax.set_ylabel('assertiveness', fontsize=14)
 
-# --- X-axis: Log scale with plain number formatting ---
+# X-axis: log scale with plain number formatting
 ax.xaxis.set_major_locator(LogLocator(base=10.0, subs='auto', numticks=20))
 ax.xaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10) * 0.1, numticks=100))
 x_formatter = ScalarFormatter()
@@ -51,18 +51,16 @@ x_formatter.set_scientific(False)
 ax.xaxis.set_major_formatter(x_formatter)
 ax.xaxis.set_minor_formatter(plt.NullFormatter())
 
-# --- Y-axis: Log scale with plain number formatting ---
-ax.yaxis.set_major_locator(LogLocator(base=10.0, subs='auto', numticks=20))
-ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10) * 0.1, numticks=100))
-y_formatter = ScalarFormatter()
-y_formatter.set_scientific(False)
-ax.yaxis.set_major_formatter(y_formatter)
-ax.yaxis.set_minor_formatter(plt.NullFormatter())
+# Y-axis: linear scale with plain formatting
+ax.yaxis.set_major_formatter(ScalarFormatter())
+ax.tick_params(axis='y', which='major', labelsize=13)
+ax.tick_params(axis='y', which='minor', labelsize=10)
+ax.grid(True, which='both', axis='y', linestyle='--', linewidth=0.5)
 
 # Improve visibility
-ax.tick_params(axis='both', which='major', labelsize=13)
-ax.tick_params(axis='both', which='minor', labelsize=10)
-ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+ax.tick_params(axis='x', which='major', labelsize=13)
+ax.tick_params(axis='x', which='minor', labelsize=10)
+ax.grid(True, which='both', axis='x', linestyle='--', linewidth=0.5)
 
 # Reference line
 sota_value = 0.6227
@@ -76,13 +74,12 @@ legend_elements = [
 ]
 ax.legend(handles=legend_elements,
           loc='lower right',
-          bbox_to_anchor=(0.98, 0.25),
           fontsize=12)
 
-# --- Zoomed inset ---
+# Zoomed inset
 zoom_x_min = 300
 zoom_x_max = 600
-zoom_y_min = 0.43
+zoom_y_min = 0.42
 zoom_y_max = 0.55
 
 axins = inset_axes(ax, width="40%", height="40%", loc='lower left',
@@ -94,12 +91,12 @@ for i in range(len(x)):
 
 axins.set_xlim(zoom_x_min, zoom_x_max)
 axins.set_ylim(zoom_y_min, zoom_y_max)
-axins.set_xscale('log')
-axins.set_yscale('log')
-axins.grid(True, which='both', linestyle='--', linewidth=0.5)
-axins.tick_params(axis='both', which='major', labelsize=8)
+axins.set_xscale('log')  # Keep log scale on x-axis
+# Removed log scale on y-axis: axins.set_yscale('log')
 
-# Format zoomed-in axes with plain numbers
+axins.grid(True, which='major', axis='both', linestyle='--', linewidth=0.5)
+
+# Format zoomed-in axes
 xins_formatter = ScalarFormatter()
 xins_formatter.set_scientific(False)
 axins.xaxis.set_major_formatter(xins_formatter)
@@ -112,8 +109,6 @@ axins.yaxis.set_minor_formatter(plt.NullFormatter())
 
 axins.xaxis.set_major_locator(LogLocator(base=10.0, subs='auto', numticks=15))
 axins.xaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10) * 0.1, numticks=100))
-axins.yaxis.set_major_locator(LogLocator(base=10.0, subs='auto', numticks=15))
-axins.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10) * 0.1, numticks=100))
 
 # Annotate points in zoomed section
 for i in range(len(x)):
@@ -125,7 +120,7 @@ for i in range(len(x)):
                        xytext=(0, 0), textcoords='offset points')
         labels[i] = ""
 
-# Annotate points in main plot
+# Annotate remaining points in main plot
 for freq, assertiv, label in zip(x, y, labels):
     ax.annotate(label, (freq, assertiv), fontsize=12, rotation=15)
 

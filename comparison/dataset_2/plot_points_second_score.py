@@ -35,8 +35,8 @@ fig, ax = plt.subplots(figsize=(10, 8))
 for i in range(len(x)):
     ax.plot(x[i], y[i], 'o', color=colors[i], markersize=6)
 
-ax.set_xscale('log')
-ax.set_yscale('log')
+ax.set_xscale('log')  # Keep x-axis as log scale
+# Removed y-axis log scale
 
 # Labels and title
 ax.set_xlabel('frequency (1/min)', fontsize=14)
@@ -48,8 +48,8 @@ x_formatter = ScalarFormatter()
 x_formatter.set_scientific(False)
 ax.xaxis.set_major_formatter(x_formatter)
 
-# --- Y-axis: Log scale with all ticks labeled ---
-ax.yaxis.set_major_locator(LogLocator(base=10.0, subs='all', numticks=30))
+# --- Y-axis: Now linear scale ---
+ax.yaxis.set_major_locator(plt.MaxNLocator(10))  # Use MaxNLocator for linear scale
 y_formatter = ScalarFormatter()
 y_formatter.set_scientific(False)
 ax.yaxis.set_major_formatter(y_formatter)

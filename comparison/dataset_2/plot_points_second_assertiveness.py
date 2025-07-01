@@ -30,29 +30,28 @@ for i in range(len(x)):
 
 # Create plot
 fig, ax = plt.subplots(figsize=(10, 8))
-ax.set_ylim(bottom=0.01, top=1)
+ax.set_ylim(bottom=0, top=1)  # Changed from 0.01 to 0 for linear scale
 
 # Plot points
 for i in range(len(x)):
     ax.plot(x[i], y[i], 'o', color=colors[i], markersize=6)
 
-ax.set_xscale('log')
-ax.set_yscale('log')
+ax.set_xscale('log')  # Keep x-axis as log scale
+# Removed y-axis log scale
 
 # Labels and title
 ax.set_xlabel('frequency (1/min)', fontsize=14)
 ax.set_ylabel('assertiveness', fontsize=14)
 
-# --- Main Axes: Increase ticks ---
+# --- Main Axes: Ticks for linear y-axis ---
 ax.xaxis.set_major_locator(LogLocator(base=10.0, subs=None, numticks=20))
-ax.yaxis.set_major_locator(LogLocator(base=10.0, subs=None, numticks=20))
 ax.xaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10), numticks=100))
-ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10), numticks=100))
-
 ax.xaxis.set_major_formatter(ScalarFormatter())
-ax.yaxis.set_major_formatter(ScalarFormatter())
 ax.xaxis.set_minor_formatter(ScalarFormatter())
-ax.yaxis.set_minor_formatter(ScalarFormatter())
+
+# Linear y-axis ticks
+ax.yaxis.set_major_locator(plt.MultipleLocator(0.1))
+ax.yaxis.set_minor_locator(plt.MultipleLocator(0.02))
 
 ax.tick_params(axis='both', which='major', labelsize=12)
 ax.tick_params(axis='both', which='minor', labelsize=10)
@@ -65,11 +64,10 @@ legend_elements = [
 ]
 ax.legend(handles=legend_elements, 
           loc='lower right', 
-          bbox_to_anchor=(0.98, 0.25), 
           fontsize=12)
 
 # --- Zoomed inset ---
-zoom_x_min = 200
+zoom_x_min = 220
 zoom_x_max = 500
 zoom_y_min = 0.4
 zoom_y_max = 0.61
@@ -83,31 +81,22 @@ for i in range(len(x)):
 
 axins.set_xlim(zoom_x_min, zoom_x_max)
 axins.set_ylim(zoom_y_min, zoom_y_max)
-axins.set_xscale('log')
-axins.set_yscale('log')
-axins.grid(True, which='both', linestyle='--', linewidth=0.5)
+axins.set_xscale('log')  # Keep x-axis as log scale
+# Removed y-axis log scale for inset
 
-# --- Inset Axes: Moderate tick increase and font size match ---
-
-# Moderate density of major ticks
+# --- Inset Axes: Ticks ---
 axins.xaxis.set_major_locator(LogLocator(base=10.0, subs=np.arange(1, 10, 1), numticks=15))
-axins.yaxis.set_major_locator(LogLocator(base=10.0, subs=np.arange(1, 10, 1), numticks=15))
-
-# Moderate density of minor ticks
 axins.xaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10, 2), numticks=50))
-axins.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10, 2), numticks=50))
-
-# Formatters
 axins.xaxis.set_major_formatter(ScalarFormatter())
-axins.yaxis.set_major_formatter(ScalarFormatter())
 axins.xaxis.set_minor_formatter(ScalarFormatter())
-axins.yaxis.set_minor_formatter(ScalarFormatter())
 
-# Font size to match main plot
+# Linear y-axis ticks for inset
+axins.yaxis.set_major_locator(plt.MultipleLocator(0.05))
+axins.yaxis.set_minor_locator(plt.MultipleLocator(0.01))
+
 axins.tick_params(axis='both', which='major', labelsize=12)
 axins.tick_params(axis='both', which='minor', labelsize=10)
-
-
+axins.grid(True, which='both', linestyle='--', linewidth=0.5)
 
 # Annotate points in zoomed section
 for i in range(len(x)):
