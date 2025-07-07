@@ -111,7 +111,7 @@ for i in range(len(x)):
 # Annotate points in main plot
 for freq, assertiv, label in zip(x, y, labels):
     if label:  # Skip already annotated
-        ax.annotate(label, (freq, assertiv), fontsize=12, rotation=30)
+        ax.annotate(label, (freq, assertiv), fontsize=12, rotation=15)
 
 # Add zoom rectangle
 rect = plt.Rectangle((zoom_x_min, zoom_y_min), 
