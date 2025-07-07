@@ -105,7 +105,7 @@ for i in range(len(x)):
     label = labels[i]
     if (zoom_x_min <= freq <= zoom_x_max) and (zoom_y_min <= assertiv <= zoom_y_max):
         axins.annotate(label, (freq, assertiv), fontsize=12,
-                       xytext=(0, 0), textcoords='offset points', rotation=30)
+                       xytext=(0, 0), textcoords='offset points')
         labels[i] = ""  # Remove from main plot annotation
 
 # Annotate points in main plot

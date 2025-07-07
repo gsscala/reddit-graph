@@ -30,13 +30,13 @@ for i in range(len(x)):
 
 # Create plot
 fig, ax = plt.subplots(figsize=(10, 8))
-
+ax.set_ylim(bottom=0.01, top=1)
 # Plot points
 for i in range(len(x)):
     ax.plot(x[i], y[i], 'o', color=colors[i], markersize=6)
 
 ax.set_xscale('log')  # Keep x-axis as log scale
-# Removed y-axis log scale
+ax.set_yscale('linear')  # Changed from 'log' to 'linear'
 
 # Labels and title
 ax.set_xlabel('frequency (1/min)', fontsize=14)
@@ -69,7 +69,6 @@ legend_elements = [
 
 ax.legend(handles=legend_elements, 
           loc='lower right', 
-          bbox_to_anchor=(0.98, 0.25),
           fontsize=12)
 
 # --- Zoomed inset ---
