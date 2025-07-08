@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import json
 import math
 
-# Load the data from the JSON file
 with open("centrality.json", "r") as f:
     data_dict = json.load(f)
+
 
 # Extract keys (degree centrality) and values (frequency)
 x_raw = list(map(float, data_dict.keys()))  # Convert keys to float
@@ -37,6 +37,9 @@ ss_res = np.sum((log_y - predicted_log_y) ** 2)
 ss_tot = np.sum((log_y - np.mean(log_y)) ** 2)
 r_squared = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0
 
+# Print the R-squared value to the terminal
+print(f"R-squared of the fit in log-log space: {r_squared}")
+
 # Generate points for the fitted curve
 x_fit = np.logspace(np.log10(min(x_clean)), np.log10(max(x_clean)), 500)
 y_fit = a * (x_fit ** (-gamma))
@@ -49,14 +52,15 @@ plt.plot(x_fit, y_fit, 'r-', linewidth=2, label=f'Fit: $y = {a:.8f} \\cdot x^{{-
 # Configure plot with larger text sizes
 plt.xscale('log')
 plt.yscale('log')
-plt.xlabel('Degree Centrality (log scale)', fontsize=14)  # Increased fontsize
-plt.ylabel('Frequency (log scale)', fontsize=14)  # Increased fontsize
-plt.legend(fontsize=12)  # Increased legend fontsize
+plt.xlabel('Degree Centrality (log scale)', fontsize=25)  # Increased fontsize
+plt.ylabel('Frequency (log scale)', fontsize=25)  # Increased fontsize
+plt.legend(fontsize=20)  # Increased legend fontsize
 
 # Increase the size of the tick labels
-plt.xticks(fontsize=12)
-plt.yticks(fontsize=12)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 
 plt.grid(True, which="both", ls="-", alpha=0.3)
 plt.tight_layout()
 plt.show()
+

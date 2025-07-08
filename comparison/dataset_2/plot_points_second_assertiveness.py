@@ -34,14 +34,14 @@ ax.set_ylim(bottom=0, top=1)  # Changed from 0.01 to 0 for linear scale
 
 # Plot points
 for i in range(len(x)):
-    ax.plot(x[i], y[i], 'o', color=colors[i], markersize=6)
+    ax.plot(x[i], y[i], 'o', color=colors[i], markersize=10)
 
 ax.set_xscale('log')  # Keep x-axis as log scale
 # Removed y-axis log scale
 
 # Labels and title
-ax.set_xlabel('frequency (1/min)', fontsize=14)
-ax.set_ylabel('assertiveness', fontsize=14)
+ax.set_xlabel('frequency (1/min)', fontsize=25)
+ax.set_ylabel('assertiveness', fontsize=25)
 
 # --- Main Axes: Ticks for linear y-axis ---
 ax.xaxis.set_major_locator(LogLocator(base=10.0, subs=None, numticks=20))
@@ -53,18 +53,18 @@ ax.xaxis.set_minor_formatter(ScalarFormatter())
 ax.yaxis.set_major_locator(plt.MultipleLocator(0.1))
 ax.yaxis.set_minor_locator(plt.MultipleLocator(0.02))
 
-ax.tick_params(axis='both', which='major', labelsize=12)
-ax.tick_params(axis='both', which='minor', labelsize=10)
+ax.tick_params(axis='x', which='both', labelsize=20, rotation=60)
+ax.tick_params(axis='y', which='both', labelsize=20)
 ax.grid(True, which='both', linestyle='--', linewidth=0.5)
 
 # Legend
 legend_elements = [
-    Line2D([0], [0], marker='o', color='w', label='Not Dominated', markerfacecolor='green', markersize=6),
-    Line2D([0], [0], marker='o', color='w', label='Dominated', markerfacecolor='red', markersize=6),
+    Line2D([0], [0], marker='o', color='w', label='Not Dominated', markerfacecolor='green', markersize=14),
+    Line2D([0], [0], marker='o', color='w', label='Dominated', markerfacecolor='red', markersize=14),
 ]
 ax.legend(handles=legend_elements, 
-          loc='lower right', 
-          fontsize=12)
+          loc='upper right', 
+          fontsize=20)
 
 # --- Zoomed inset ---
 zoom_x_min = 220
@@ -77,7 +77,7 @@ axins = inset_axes(ax, width="40%", height="40%", loc='lower left',
                    bbox_transform=ax.transAxes)
 
 for i in range(len(x)):
-    axins.plot(x[i], y[i], 'o', color=colors[i], markersize=6)
+    axins.plot(x[i], y[i], 'o', color=colors[i], markersize=10)
 
 axins.set_xlim(zoom_x_min, zoom_x_max)
 axins.set_ylim(zoom_y_min, zoom_y_max)
@@ -94,8 +94,7 @@ axins.xaxis.set_minor_formatter(ScalarFormatter())
 axins.yaxis.set_major_locator(plt.MultipleLocator(0.05))
 axins.yaxis.set_minor_locator(plt.MultipleLocator(0.01))
 
-axins.tick_params(axis='both', which='major', labelsize=12)
-axins.tick_params(axis='both', which='minor', labelsize=10)
+axins.tick_params(axis='both', which='both', labelsize=20)
 axins.grid(True, which='both', linestyle='--', linewidth=0.5)
 
 # Annotate points in zoomed section
@@ -104,14 +103,14 @@ for i in range(len(x)):
     assertiv = y[i]
     label = labels[i]
     if (zoom_x_min <= freq <= zoom_x_max) and (zoom_y_min <= assertiv <= zoom_y_max):
-        axins.annotate(label, (freq, assertiv), fontsize=12,
-                       xytext=(0, 0), textcoords='offset points')
+        axins.annotate(label, (freq, assertiv), fontsize=20,
+                       xytext=(3, 2), textcoords='offset points')
         labels[i] = ""  # Remove from main plot annotation
 
 # Annotate points in main plot
 for freq, assertiv, label in zip(x, y, labels):
     if label:  # Skip already annotated
-        ax.annotate(label, (freq, assertiv), fontsize=12, rotation=15)
+        ax.annotate(label, (freq, assertiv), fontsize=20, rotation=30)
 
 # Add zoom rectangle
 rect = plt.Rectangle((zoom_x_min, zoom_y_min), 
