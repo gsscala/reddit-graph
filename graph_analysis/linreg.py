@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import json
 import math
 
-with open("centrality.json", "r") as f:
+with open("accumulated_centrality.json", "r") as f:
     data_dict = json.load(f)
 
 
@@ -52,7 +52,7 @@ plt.plot(x_fit, y_fit, 'r-', linewidth=2, label=f'Fit: $y = {a:.8f} \\cdot x^{{-
 # Configure plot with larger text sizes
 plt.xscale('log')
 plt.yscale('log')
-plt.xlabel('Degree Centrality (log scale)', fontsize=25)  # Increased fontsize
+plt.xlabel('Complementary Cumulative Degree Centrality (log scale)', fontsize=25)  # Increased fontsize
 plt.ylabel('Frequency (log scale)', fontsize=25)  # Increased fontsize
 plt.legend(fontsize=20)  # Increased legend fontsize
 
