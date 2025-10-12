@@ -5,7 +5,7 @@ import math
 
 def generate_null_model(graph: nx.Graph):
     weights = [graph[a][b]["weight"] for a, b in graph.edges()]
-    random.seed(42)
+    # random.seed(42)
     random.shuffle(weights)
     null_model = nx.Graph()
     for i, (a, b) in enumerate(graph.edges()):
