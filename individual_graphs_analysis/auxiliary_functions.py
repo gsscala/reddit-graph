@@ -13,7 +13,8 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import random
-import math
+import scipy.sparse.linalg as spla
+import scipy.linalg as la
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
@@ -74,33 +75,84 @@ def calculate_bw(graph: nx.Graph, z: int = 3) -> float:
     Returns:
         The balance metric value.
     """
-    nodes = list(graph.nodes())
-    n = len(nodes)
-    N = np.zeros((n, n))  # Negative adjacency matrix
-    P = np.zeros((n, n))  # Positive adjacency matrix
-    node_index = {node: idx for idx, node in enumerate(nodes)}
+    # nodes = list(graph.nodes())
+    # n = len(nodes)
+    # N = np.zeros((n, n))  # Negative adjacency matrix
+    # P = np.zeros((n, n))  # Positive adjacency matrix
+    # node_index = {node: idx for idx, node in enumerate(nodes)}
 
-    # Populate adjacency matrices based on edge signs
-    for a, b, data in graph.edges(data=True):
-        i, j = node_index[a], node_index[b]
-        if data["weight"] == -1:
-            N[i, j] = 1
-            N[j, i] = 1
+    # # Populate adjacency matrices based on edge signs
+    # for a, b, data in graph.edges(data=True):
+    #     i, j = node_index[a], node_index[b]
+    #     if data["weight"] == -1:
+    #         N[i, j] = 1
+    #         N[j, i] = 1
+    #     else:
+    #         P[i, j] = 1
+    #         P[j, i] = 1
+    
+    # max_eigenvalue = max(np.linalg.eigvalsh(P))
+    # alfa = 2  # Scaling parameter
+    
+    # # Calculate BW(α) = 1/2 Tr[N((αλI - P)^(-1))]
+    # I = np.eye(n)
+    # matrix_to_invert = alfa * max_eigenvalue * I - P
+    # inv_matrix = np.linalg.inv(matrix_to_invert)
+    # bw_matrix = np.dot(N, inv_matrix)
+    # bw_value = np.trace(bw_matrix) / 2
+    
+    # return bw_value
+
+    n = graph.number_of_nodes()
+    if n == 0:
+        return 0.0
+        
+    # 1. Fast sparse matrix construction
+    nodes = list(graph.nodes())
+    A = nx.to_scipy_sparse_array(graph, nodelist=nodes, weight="weight", format="csr")
+    
+    # Extract Positive (P) and Negative (N) adjacency matrices
+    P = A.copy()
+    P.data = np.where(P.data > 0, P.data, 0)
+    P.eliminate_zeros()
+    
+    N = A.copy()
+    N.data = np.where(N.data < 0, -N.data, 0) # Convert -1 to 1 to match original logic
+    N.eliminate_zeros()
+    
+    # 2. Fast Maximum Eigenvalue computation
+    if P.nnz == 0:
+        max_eigenvalue = 0.0
+    else:
+        if n < 10:
+            # Fallback for very small graphs
+            max_eigenvalue = max(la.eigvalsh(P.toarray())) 
         else:
-            P[i, j] = 1
-            P[j, i] = 1
+            # eigsh finds only the top k eigenvalues, dramatically faster than all of them
+            max_eigenvalue = spla.eigsh(P.astype(float), k=1, which='LA', return_eigenvectors=False)[0]
+            
+    alfa = 2.0
     
-    max_eigenvalue = max(np.linalg.eigvalsh(P))
-    alfa = 2  # Scaling parameter
+    # 3. Dense inversion using Cholesky
+    matrix_to_invert = np.eye(n) * (alfa * max_eigenvalue) - P.toarray()
     
-    # Calculate BW(α) = 1/2 Tr[N((αλI - P)^(-1))]
-    I = np.eye(n)
-    matrix_to_invert = alfa * max_eigenvalue * I - P
-    inv_matrix = np.linalg.inv(matrix_to_invert)
-    bw_matrix = np.dot(N, inv_matrix)
-    bw_value = np.trace(bw_matrix) / 2
+    try:
+        # Since (αλI - P) is Symmetric Positive Definite, Cholesky factorization 
+        # is roughly 2x faster than a standard inverse.
+        c, lower = la.cho_factor(matrix_to_invert, check_finite=False)
+        inv_matrix = la.cho_solve((c, lower), np.eye(n), check_finite=False)
+    except la.LinAlgError:
+        # Fallback to standard inverse if matrix acts singular
+        inv_matrix = la.inv(matrix_to_invert, check_finite=False)
+        
+    # 4. Eliminate O(n^3) matrix multiplication for the trace
+    N_coo = N.tocoo()
     
-    return bw_value
+    # We only sum the specific elements of inv_matrix where N has non-zero entries
+    trace_val = np.sum(N_coo.data * inv_matrix[N_coo.row, N_coo.col])
+    
+    return trace_val / 2.0
+
 
 
 def geo_abs(triangle: list) -> float:
@@ -501,6 +553,7 @@ def calculate_balance_metrics(graphs: dict, null_models: dict,
         and 'nu_w' (ratio of real to null).
     """
     results = {}
+    distributions = []
     
     for subreddit, graph in graphs.items():
         # Convert to absolute (signed) graphs
@@ -508,11 +561,14 @@ def calculate_balance_metrics(graphs: dict, null_models: dict,
         simplified_null_model = [absolute_graph(null_models[subreddit][i]) 
                                 for i in range(NumberOfRandoms)]
         
+        print(f"Starting {subreddit}")
+        
         # Calculate balance metrics
         b_w = calculate_bw(simplified_original_graph)
         null_model_distribution = np.array([calculate_bw(simplified_null_model[i]) 
                    for i in range(NumberOfRandoms)])
         
+        distributions.append(null_model_distribution)
         
         mean = np.mean(null_model_distribution)
         
@@ -526,7 +582,7 @@ def calculate_balance_metrics(graphs: dict, null_models: dict,
         }
 
     df_nu = pd.DataFrame.from_dict(results, orient='index')
-    return df_nu
+    return df_nu, distributions
 
 
 def calculate_triangles_null_graph(graphs: dict, null_models: dict) -> dict:
@@ -588,6 +644,7 @@ def non_binary_metric(triangles_graph: dict, null_triangles: dict) -> pd.DataFra
         'avg_null' (null average), and 'ratio' (real/null).
     """
     results = []
+    distributions = {}
 
     for subreddit, triangle_list in triangles_graph.items():
         # Calculate metric for real data
@@ -599,7 +656,7 @@ def non_binary_metric(triangles_graph: dict, null_triangles: dict) -> pd.DataFra
         prod /= len(triangle_list)
         
         # Calculate metric for null models
-        to_average = []
+        null_model_distribution = []
         for null_triangle_list in null_triangles[subreddit]:
             null_prod = 0
             for triangle in null_triangle_list:
@@ -607,20 +664,27 @@ def non_binary_metric(triangles_graph: dict, null_triangles: dict) -> pd.DataFra
                 temp *= abs(temp) ** (1/3)
                 null_prod += temp
             null_prod /= len(null_triangle_list)
-            to_average.append(null_prod)
+            null_model_distribution.append(null_prod)
         
-        avg = np.abs(np.mean(np.array(to_average)))
-        ratio = prod / avg if avg != 0 else np.inf
+        null_model_distribution = np.array(null_model_distribution)
+
+        mean = np.mean(null_model_distribution)
+        
+        std = np.std(null_model_distribution)
         
         results.append({
             'subreddit': subreddit,
             'prod': prod,
-            'avg_null': avg,
-            'ratio': ratio
+            "mean": mean, 
+            "std": std,
+            "z-score": (prod - mean) / std
         })
 
-    results_df = pd.DataFrame(results)
-    return results_df
+        distributions[subreddit] = null_model_distribution
+
+    results_df = pd.DataFrame(results).set_index("subreddit")
+
+    return results_df, distributions
 
 
 def kolmogorov_smirnov(triangles_graph: dict, null_triangles: dict) -> None:
