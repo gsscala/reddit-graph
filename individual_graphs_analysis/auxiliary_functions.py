@@ -509,15 +509,20 @@ def calculate_balance_metrics(graphs: dict, null_models: dict,
                                 for i in range(NumberOfRandoms)]
         
         # Calculate balance metrics
-        nu_w = calculate_bw(simplified_original_graph)
-        standard = [calculate_bw(simplified_null_model[i]) 
-                   for i in range(NumberOfRandoms)]
-        standard = sum(standard) / NumberOfRandoms
+        b_w = calculate_bw(simplified_original_graph)
+        null_model_distribution = np.array([calculate_bw(simplified_null_model[i]) 
+                   for i in range(NumberOfRandoms)])
+        
+        
+        mean = np.mean(null_model_distribution)
+        
+        std = np.std(null_model_distribution)
         
         results[subreddit] = {
-            'B_w': nu_w, 
-            "Standard_B_w": standard, 
-            "nu_w": nu_w / standard
+            'B_w': b_w, 
+            "mean": mean, 
+            "std": std,
+            "z-score": (b_w - mean) / std
         }
 
     df_nu = pd.DataFrame.from_dict(results, orient='index')
