@@ -686,6 +686,42 @@ def non_binary_metric(triangles_graph: dict, null_triangles: dict) -> pd.DataFra
 
     return results_df, distributions
 
+def prepare_cumulative(d):
+    """Convert dictionary to sorted values and cumulative counts."""
+    if len(d) == 0:
+        return np.array([]), np.array([])
+    vals = np.array(sorted(d.keys()))
+    counts = np.array([d[v] for v in vals], dtype=int)
+    return vals, np.cumsum(counts)
+
+def average_null_models(dict_list):
+    """Average cumulative distributions across null models using forward-fill."""
+    if not dict_list:
+        return np.array([]), np.array([])
+    
+    # Collect all unique values
+    all_vals = set()
+    for d in dict_list:
+        all_vals.update(d.keys())
+    
+    if not all_vals:
+        return np.array([]), np.array([])
+    
+    all_vals = np.array(sorted(all_vals))
+    
+    # Build cumulative curves with forward-fill
+    cumulative_curves = []
+    for d in dict_list:
+        vals, cum = prepare_cumulative(d)
+        if len(vals) == 0:
+            cumulative_curves.append(np.zeros_like(all_vals))
+        else:
+            cum_interp = np.searchsorted(vals, all_vals, side='right') - 1
+            cum_interp = np.where(cum_interp >= 0, cum[cum_interp], 0)
+            cumulative_curves.append(cum_interp)
+    
+    avg_cumulative = np.mean(cumulative_curves, axis=0)
+    return all_vals, avg_cumulative
 
 def kolmogorov_smirnov(triangles_graph: dict, null_triangles: dict) -> None:
     """
@@ -726,43 +762,7 @@ def kolmogorov_smirnov(triangles_graph: dict, null_triangles: dict) -> None:
                 null_all[val] += 1
             null_all_dicts.append(null_all)
         
-        def prepare_cumulative(d):
-            """Convert dictionary to sorted values and cumulative counts."""
-            if len(d) == 0:
-                return np.array([]), np.array([])
-            vals = np.array(sorted(d.keys()))
-            counts = np.array([d[v] for v in vals], dtype=int)
-            return vals, np.cumsum(counts)
-        
-        def average_null_models(dict_list):
-            """Average cumulative distributions across null models using forward-fill."""
-            if not dict_list:
-                return np.array([]), np.array([])
-            
-            # Collect all unique values
-            all_vals = set()
-            for d in dict_list:
-                all_vals.update(d.keys())
-            
-            if not all_vals:
-                return np.array([]), np.array([])
-            
-            all_vals = np.array(sorted(all_vals))
-            
-            # Build cumulative curves with forward-fill
-            cumulative_curves = []
-            for d in dict_list:
-                vals, cum = prepare_cumulative(d)
-                if len(vals) == 0:
-                    cumulative_curves.append(np.zeros_like(all_vals))
-                else:
-                    cum_interp = np.searchsorted(vals, all_vals, side='right') - 1
-                    cum_interp = np.where(cum_interp >= 0, cum[cum_interp], 0)
-                    cumulative_curves.append(cum_interp)
-            
-            avg_cumulative = np.mean(cumulative_curves, axis=0)
-            return all_vals, avg_cumulative
-        
+       
         # Get cumulative curves
         vals_all, cum_all = prepare_cumulative(all_triangles_dict)
         vals_all_null, cum_all_null = average_null_models(null_all_dicts)
@@ -824,3 +824,4 @@ def kolmogorov_smirnov(triangles_graph: dict, null_triangles: dict) -> None:
                   f"p-value = {stats['p-value']:8.4f}")
         else:
             print(f"{subreddit:30s} | No data available")
+
