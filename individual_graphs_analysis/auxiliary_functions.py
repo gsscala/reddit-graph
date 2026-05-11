@@ -574,11 +574,14 @@ def calculate_balance_metrics(graphs: dict, null_models: dict,
         
         std = np.std(null_model_distribution)
         
+        # percentile = (np.sum(np.array(null_model_distribution[subreddit]) < b_w) / len(null_model_distribution[subreddit])) * 100
+        
         results[subreddit] = {
             'B_w': b_w, 
             "mean": mean, 
             "std": std,
-            "z-score": (b_w - mean) / std
+            "z-score": (b_w - mean) / std,
+            "percentile": percentile
         }
 
     df_nu = pd.DataFrame.from_dict(results, orient='index')
@@ -628,7 +631,7 @@ def calculate_triangles_null_graph(graphs: dict, null_models: dict) -> dict:
     return null_triangles
 
 
-def non_binary_metric(triangles_graph: dict, null_triangles: dict) -> pd.DataFrame:
+def non_binary_metric(triangles_graph: dict, null_triangles: dict):
     """
     Calculate a non-binary balance metric for triangles.
     
@@ -672,12 +675,16 @@ def non_binary_metric(triangles_graph: dict, null_triangles: dict) -> pd.DataFra
         
         std = np.std(null_model_distribution)
         
+        percentile = (np.sum(null_model_distribution < prod) / len(null_model_distribution)) * 100
+
+        
         results.append({
             'subreddit': subreddit,
             'prod': prod,
             "mean": mean, 
             "std": std,
-            "z-score": (prod - mean) / std
+            "z-score": (prod - mean) / std,
+            "percentile": percentile
         })
 
         distributions[subreddit] = null_model_distribution
